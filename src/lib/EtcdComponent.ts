@@ -1,5 +1,6 @@
 import {Component, IComponentOptions} from '@sora-soft/framework';
 import {Etcd3, IOptions, Lease, Lock} from 'etcd3';
+import {EtcdError, EtcdErrorCode} from './EtcdError';
 
 export type EtcdLockCallback<T> = (lock: Lock) => Promise<T>;
 
@@ -29,6 +30,8 @@ class EtcdComponent extends Component {
   }
 
   async lock<T>(key: string, callback: EtcdLockCallback<T>, ttlSec = 1): Promise<T> {
+    if (!this.etcd_)
+      throw new EtcdError(EtcdErrorCode.ERR_COMPONENT_NOT_CONNECTED, `ERR_COMPONENT_NOT_CONNECTED, name=${this.name_}`);
     const lock = this.etcd_.lock([this.etcdOptions_.prefix, key].join('/')).ttl(ttlSec);
     return lock.do<T>(async () => {
       return callback(lock);
@@ -36,10 +39,14 @@ class EtcdComponent extends Component {
   }
 
   get lease() {
+    if (!this.lease_)
+      throw new EtcdError(EtcdErrorCode.ERR_COMPONENT_NOT_CONNECTED, `ERR_COMPONENT_NOT_CONNECTED, name=${this.name_}`);
     return this.lease_;
   }
 
   get client() {
+    if (!this.etcd_)
+      throw new EtcdError(EtcdErrorCode.ERR_COMPONENT_NOT_CONNECTED, `ERR_COMPONENT_NOT_CONNECTED, name=${this.name_}`);
     return this.etcd_;
   }
 
