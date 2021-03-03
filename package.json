@@ -6,6 +6,7 @@
   "scripts": {
     "build": "rimraf ./dist && tsc",
     "prepublishOnly": "rimraf ./dist && tsc",
+    "link": "npm link @sora-soft/framework",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": "git@github.com/sora-soft/etcd-component.git",
