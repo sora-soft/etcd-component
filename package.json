@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/sora-soft/etcd-component#readme",
   "dependencies": {
-    "@sora-soft/framework": "^1.0.8",
+    "@sora-soft/framework": "^1.0.9",
     "etcd3": "^1.1.0"
   },
   "devDependencies": {
