@@ -16,13 +16,13 @@ class EtcdComponent extends Component {
     this.etcdOptions_ = options;
   }
 
-  async connect() {
+  protected async connect() {
     this.etcd_ = new Etcd3(this.etcdOptions_.etcd);
     this.lease_ = this.etcd_.lease(this.etcdOptions_.ttl);
     await this.lease_.grant();
   }
 
-  async disconnect() {
+  protected async disconnect() {
     await this.lease_.revoke();
     this.lease_ = null;
     this.etcd_.close();
