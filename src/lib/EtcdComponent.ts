@@ -2,6 +2,9 @@ import {Component, IComponentOptions} from '@sora-soft/framework';
 import {Etcd3, IOptions, Lease, Lock} from 'etcd3';
 import {EtcdError, EtcdErrorCode} from './EtcdError';
 
+// tslint:disable-next-line
+const pkg = require('../../package.json');
+
 export type EtcdLockCallback<T> = (lock: Lock) => Promise<T>;
 
 export interface IEtcdComponentOptions extends IComponentOptions {
@@ -48,6 +51,10 @@ class EtcdComponent extends Component {
     if (!this.etcd_)
       throw new EtcdError(EtcdErrorCode.ERR_COMPONENT_NOT_CONNECTED, `ERR_COMPONENT_NOT_CONNECTED, name=${this.name_}`);
     return this.etcd_;
+  }
+
+  get version() {
+    return pkg.version;
   }
 
   private etcd_: Etcd3;
