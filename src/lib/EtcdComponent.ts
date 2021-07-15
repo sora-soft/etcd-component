@@ -1,6 +1,7 @@
 import {Component, IComponentOptions} from '@sora-soft/framework';
-import {Etcd3, IOptions, Lease, Lock} from 'etcd3';
+import {Etcd3, IOptions, Lease, Lock, isRecoverableError} from 'etcd3';
 import {EtcdError, EtcdErrorCode} from './EtcdError';
+import { Policy, ConsecutiveBreaker, ExponentialBackoff } from 'cockatiel';
 
 // tslint:disable-next-line
 const pkg = require('../../package.json');
@@ -20,7 +21,15 @@ class EtcdComponent extends Component {
   }
 
   protected async connect() {
-    this.etcd_ = new Etcd3(this.etcdOptions_.etcd);
+    this.etcd_ = new Etcd3({
+      ...this.etcdOptions_.etcd,
+      faultHandling: {
+        host: () =>
+          Policy.handleWhen(isRecoverableError).circuitBreaker(5_000, new ConsecutiveBreaker(3)),
+          global: Policy.handleWhen(isRecoverableError).retry(),
+          watchBackoff: new ExponentialBackoff(),
+      },
+    });
     this.lease_ = this.etcd_.lease(this.etcdOptions_.ttl);
     await this.lease_.grant();
   }
