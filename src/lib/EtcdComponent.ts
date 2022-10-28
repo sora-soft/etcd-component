@@ -1,7 +1,9 @@
-import {Component, IComponentOptions} from '@sora-soft/framework';
+import {Component, IComponentOptions, IEventEmitter, Runtime} from '@sora-soft/framework';
 import {Etcd3, IOptions, Lease, Lock, isRecoverableError} from 'etcd3';
 import {EtcdError, EtcdErrorCode} from './EtcdError';
 import { Policy, ConsecutiveBreaker, ExponentialBackoff } from 'cockatiel';
+import {EventEmitter} from 'stream';
+import {EtcdEvent, IEtcdEvent} from './EtcdEvent';
 
 // tslint:disable-next-line
 const pkg = require('../../package.json');
@@ -18,6 +20,7 @@ class EtcdComponent extends Component {
 
   protected setOptions(options: IEtcdComponentOptions) {
     this.etcdOptions_ = options;
+    this.emitter_ = new EventEmitter();
   }
 
   protected async connect() {
@@ -26,12 +29,22 @@ class EtcdComponent extends Component {
       faultHandling: {
         host: () =>
           Policy.handleWhen(isRecoverableError).circuitBreaker(5_000, new ConsecutiveBreaker(3)),
-          global: Policy.handleWhen(isRecoverableError).retry(),
-          watchBackoff: new ExponentialBackoff(),
+        global: Policy.handleWhen(isRecoverableError).retry(),
+        watchBackoff: new ExponentialBackoff(),
       },
     });
+
+    await this.grantLease();
+  }
+
+  async grantLease() {
     this.lease_ = this.etcd_.lease(this.etcdOptions_.ttl);
     await this.lease_.grant();
+    this.lease_.on('lost', async (err) => {
+      Runtime.frameLogger.warn(`component.${this.name}`, {event: 'ease-lost', err});
+      await this.grantLease();
+      this.emitter_.emit(EtcdEvent.LeaseReconnect, this.lease_, err);
+    });
   }
 
   protected async disconnect() {
@@ -69,6 +82,7 @@ class EtcdComponent extends Component {
   private etcd_: Etcd3;
   private etcdOptions_: IEtcdComponentOptions;
   private lease_: Lease;
+  private emitter_: IEventEmitter<IEtcdEvent>;
 }
 
 export {EtcdComponent}
