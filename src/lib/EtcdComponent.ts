@@ -1,4 +1,4 @@
-import {Component, IComponentOptions, IEventEmitter, Runtime} from '@sora-soft/framework';
+import {Component, IComponentOptions, IEventEmitter, Runtime, Time} from '@sora-soft/framework';
 import {Etcd3, IOptions, Lease, Lock, isRecoverableError} from 'etcd3';
 import {EtcdError, EtcdErrorCode} from './EtcdError';
 import { Policy, ConsecutiveBreaker, ExponentialBackoff } from 'cockatiel';
@@ -37,13 +37,22 @@ class EtcdComponent extends Component {
     await this.grantLease();
   }
 
+  async reconnect(err: Error) {
+    await Time.timeout(1000);
+    Runtime.frameLogger.info(`component.${this.name}`, {event: 'start-grant-lease',});
+    await this.grantLease().catch(async e => {
+      Runtime.frameLogger.error(`component.${this.name}`, e, {event: 'reconnect-grant-lease-error',})
+      await this.reconnect(err);
+    });
+    this.emitter_.emit(EtcdEvent.LeaseReconnect, this.lease_, err);
+  }
+
   async grantLease() {
     this.lease_ = this.etcd_.lease(this.etcdOptions_.ttl);
     await this.lease_.grant();
     this.lease_.on('lost', async (err) => {
-      Runtime.frameLogger.warn(`component.${this.name}`, {event: 'ease-lost', err});
-      await this.grantLease();
-      this.emitter_.emit(EtcdEvent.LeaseReconnect, this.lease_, err);
+      Runtime.frameLogger.warn(`component.${this.name}`, {event: 'lease-lost', err});
+      this.reconnect(err);
     });
   }
 
@@ -77,6 +86,10 @@ class EtcdComponent extends Component {
 
   get version() {
     return pkg.version;
+  }
+
+  get emitter() {
+    return this.emitter_;
   }
 
   private etcd_: Etcd3;
