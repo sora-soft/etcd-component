@@ -6,13 +6,15 @@
     "target": "ESNext",
     "outDir": "./dist",
     "sourceMap": true,
+    "strictNullChecks": true,
     "alwaysStrict": true,
     "downlevelIteration": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
   "include": [
-    "./src/**/*"
+    "./src/**/*",
+    "./.eslintrc.js"
   ],
   "exclude": [
     "dist",

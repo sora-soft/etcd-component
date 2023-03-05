@@ -1,12 +1,12 @@
-import {Component, IComponentOptions, IEventEmitter, Runtime, Time} from '@sora-soft/framework';
+import {Component, ExError, IComponentOptions, IEventEmitter, Runtime, Time} from '@sora-soft/framework';
 import {Etcd3, IOptions, Lease, Lock, isRecoverableError} from 'etcd3';
 import {EtcdError, EtcdErrorCode} from './EtcdError';
-import { Policy, ConsecutiveBreaker, ExponentialBackoff } from 'cockatiel';
+import {Policy, ConsecutiveBreaker, ExponentialBackoff} from 'cockatiel';
 import {EventEmitter} from 'stream';
 import {EtcdEvent, IEtcdEvent} from './EtcdEvent';
 
-// tslint:disable-next-line
-const pkg = require('../../package.json');
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
+const pkg: {version: string} = require('../../package.json');
 
 export type EtcdLockCallback<T> = (lock: Lock) => Promise<T>;
 
@@ -40,26 +40,35 @@ class EtcdComponent extends Component {
   async reconnect(err: Error) {
     await Time.timeout(1000);
     Runtime.frameLogger.info(`component.${this.name}`, {event: 'start-grant-lease',});
-    await this.grantLease().catch(async e => {
-      Runtime.frameLogger.error(`component.${this.name}`, e, {event: 'reconnect-grant-lease-error',})
+    await this.grantLease().catch(async (e: ExError) => {
+      Runtime.frameLogger.error(`component.${this.name}`, e, {event: 'reconnect-grant-lease-error',});
       await this.reconnect(err);
     });
+
+    if (!this.lease_) {
+      return;
+    }
     this.emitter_.emit(EtcdEvent.LeaseReconnect, this.lease_, err);
   }
 
   async grantLease() {
+    if (!this.etcd_)
+      throw new EtcdError(EtcdErrorCode.ERR_COMPONENT_NOT_CONNECTED, `ERR_COMPONENT_NOT_CONNECTED, name=${this.name_}`);
+
     this.lease_ = this.etcd_.lease(this.etcdOptions_.ttl);
     await this.lease_.grant();
-    this.lease_.on('lost', async (err) => {
+    this.lease_.on('lost', async (err: ExError) => {
       Runtime.frameLogger.warn(`component.${this.name}`, {event: 'lease-lost', err});
-      this.reconnect(err);
+      await this.reconnect(err);
     });
   }
 
   protected async disconnect() {
-    await this.lease_.revoke();
+    if (this.lease_)
+      await this.lease_.revoke();
     this.lease_ = null;
-    this.etcd_.close();
+    if (this.etcd_)
+      this.etcd_.close();
     this.etcd_ = null;
   }
 
@@ -92,10 +101,10 @@ class EtcdComponent extends Component {
     return this.emitter_;
   }
 
-  private etcd_: Etcd3;
+  private etcd_: Etcd3 | null;
   private etcdOptions_: IEtcdComponentOptions;
-  private lease_: Lease;
+  private lease_: Lease | null;
   private emitter_: IEventEmitter<IEtcdEvent>;
 }
 
-export {EtcdComponent}
+export {EtcdComponent};

@@ -1,7 +1,7 @@
 import {ExError} from '@sora-soft/framework';
 
 export enum EtcdErrorCode {
-  ERR_COMPONENT_NOT_CONNECTED = `ERR_COMPONENT_NOT_CONNECTED`,
+  ERR_COMPONENT_NOT_CONNECTED = 'ERR_COMPONENT_NOT_CONNECTED',
 }
 
 class EtcdError extends ExError {
@@ -13,4 +13,4 @@ class EtcdError extends ExError {
 }
 
 
-export {EtcdError}
+export {EtcdError};
