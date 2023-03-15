@@ -1,9 +1,9 @@
 import {Component, ExError, IComponentOptions, IEventEmitter, Runtime, Time} from '@sora-soft/framework';
 import {Etcd3, IOptions, Lease, Lock, isRecoverableError} from 'etcd3';
-import {EtcdError, EtcdErrorCode} from './EtcdError';
+import {EtcdError, EtcdErrorCode} from './EtcdError.js';
 import {Policy, ConsecutiveBreaker, ExponentialBackoff} from 'cockatiel';
 import {EventEmitter} from 'stream';
-import {EtcdEvent, IEtcdEvent} from './EtcdEvent';
+import {EtcdEvent, IEtcdEvent} from './EtcdEvent.js';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
 const pkg: {version: string} = require('../../package.json');
@@ -28,7 +28,7 @@ class EtcdComponent extends Component {
       ...this.etcdOptions_.etcd,
       faultHandling: {
         host: () =>
-          Policy.handleWhen(isRecoverableError).circuitBreaker(5_000, new ConsecutiveBreaker(3)),
+          Policy.handleWhen(isRecoverableError).circuitBreaker(5000, new ConsecutiveBreaker(3)),
         global: Policy.handleWhen(isRecoverableError).retry(),
         watchBackoff: new ExponentialBackoff(),
       },

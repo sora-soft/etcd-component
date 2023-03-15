@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "moduleResolution": "node",
-    "module": "commonjs",
+    "moduleResolution": "node16",
+    "module": "Node16",
     "declaration": true,
     "target": "ESNext",
     "outDir": "./dist",
@@ -10,11 +10,14 @@
     "alwaysStrict": true,
     "downlevelIteration": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "plugins": [{
+      "transform": "typescript-is/lib/transform-inline/transformer"
+    }]
   },
   "include": [
     "./src/**/*",
-    "./.eslintrc.js"
+    "./.eslintrc.cjs"
   ],
   "exclude": [
     "dist",
