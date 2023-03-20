@@ -35,8 +35,8 @@
     }
   },
   "dependencies": {
-    "@sora-soft/framework": "^1.10.0",
-    "@sora-soft/type-guard": "^1.0.2",
+    "@sora-soft/framework": "^1.10.2",
+    "@sora-soft/type-guard": "^1.0.3",
     "etcd3": "^1.1.0"
   },
   "devDependencies": {

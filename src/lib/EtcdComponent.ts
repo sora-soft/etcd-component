@@ -2,7 +2,7 @@ import {Component, ExError, IComponentOptions, IEventEmitter, Runtime, Time} fro
 import {Etcd3, IOptions, Lease, Lock, isRecoverableError} from 'etcd3';
 import {EtcdError, EtcdErrorCode} from './EtcdError.js';
 import {Policy, ConsecutiveBreaker, ExponentialBackoff} from 'cockatiel';
-import {EventEmitter} from 'stream';
+import Event from 'events';
 import {EtcdEvent, IEtcdEvent} from './EtcdEvent.js';
 import {readFile} from 'fs/promises';
 import {AssertType, ValidateClass} from '@sora-soft/type-guard';
@@ -24,7 +24,7 @@ class EtcdComponent extends Component {
 
   protected setOptions(@AssertType() options: IEtcdComponentOptions) {
     this.etcdOptions_ = options;
-    this.emitter_ = new EventEmitter();
+    this.emitter_ = new Event.EventEmitter();
   }
 
   protected async connect() {
