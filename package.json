@@ -7,8 +7,6 @@
   "scripts": {
     "build": "rimraf ./dist && ttsc",
     "prepublishOnly": "rimraf ./dist && ttsc",
-    "link": "npm link @sora-soft/framework",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky install",
     "preCommit": "lint-staged",
     "preversion": "lint-staged && npm run build"
@@ -38,18 +36,14 @@
   },
   "dependencies": {
     "@sora-soft/framework": "^1.10.0",
-    "etcd3": "^1.1.0",
-    "typescript-is": "^0.18.3"
+    "@sora-soft/type-guard": "^1.0.2",
+    "etcd3": "^1.1.0"
   },
   "devDependencies": {
     "@types/assert": "^1.5.4",
     "@types/expect": "^24.3.0",
     "@types/mocha": "^8.2.0",
     "@types/node": "^14.14.31",
-    "rimraf": "^3.0.2",
-    "typescript": "^4.9.0",
-    "husky": "^8.0.3",
-    "lint-staged": "^13.1.2",
     "@typescript-eslint/eslint-plugin": "^5.54.0",
     "@typescript-eslint/parser": "^5.54.0",
     "eslint": "^8.35.0",
@@ -58,6 +52,10 @@
     "eslint-plugin-jsdoc": "^40.0.1",
     "eslint-plugin-prefer-arrow": "^1.2.3",
     "eslint-plugin-unused-imports": "^2.0.0",
-    "ttypescript": "^1.5.12"
+    "husky": "^8.0.3",
+    "lint-staged": "^13.1.2",
+    "rimraf": "^3.0.2",
+    "ttypescript": "^1.5.15",
+    "typescript": "^4.9.0"
   }
 }

@@ -4,9 +4,12 @@ import {EtcdError, EtcdErrorCode} from './EtcdError.js';
 import {Policy, ConsecutiveBreaker, ExponentialBackoff} from 'cockatiel';
 import {EventEmitter} from 'stream';
 import {EtcdEvent, IEtcdEvent} from './EtcdEvent.js';
+import {readFile} from 'fs/promises';
+import {AssertType, ValidateClass} from '@sora-soft/type-guard';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
-const pkg: {version: string} = require('../../package.json');
+const pkg = JSON.parse(
+  await readFile(new URL('../../package.json', import.meta.url), {encoding: 'utf-8'})
+) as {version: string};
 
 export type EtcdLockCallback<T> = (lock: Lock) => Promise<T>;
 
@@ -16,9 +19,10 @@ export interface IEtcdComponentOptions extends IComponentOptions {
   prefix: string;
 }
 
+@ValidateClass()
 class EtcdComponent extends Component {
 
-  protected setOptions(options: IEtcdComponentOptions) {
+  protected setOptions(@AssertType() options: IEtcdComponentOptions) {
     this.etcdOptions_ = options;
     this.emitter_ = new EventEmitter();
   }
@@ -39,9 +43,9 @@ class EtcdComponent extends Component {
 
   async reconnect(err: Error) {
     await Time.timeout(1000);
-    Runtime.frameLogger.info(`component.${this.name}`, {event: 'start-grant-lease',});
+    Runtime.frameLogger.info(`component.${this.name}`, {event: 'start-grant-lease'});
     await this.grantLease().catch(async (e: ExError) => {
-      Runtime.frameLogger.error(`component.${this.name}`, e, {event: 'reconnect-grant-lease-error',});
+      Runtime.frameLogger.error(`component.${this.name}`, e, {event: 'reconnect-grant-lease-error'});
       await this.reconnect(err);
     });
 
