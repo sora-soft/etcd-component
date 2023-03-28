@@ -31,18 +31,16 @@
   "exports": {
     ".": "./dist/index.js",
     "./etcd3": {
-      "import": "./dist/etcd.js"
+      "import": "./dist/etcd.js",
+      "types": "./dist/etcd.d.ts"
     }
   },
   "dependencies": {
-    "@sora-soft/framework": "^1.10.2",
-    "@sora-soft/type-guard": "^1.0.3",
+    "@sora-soft/framework": "^1.10.4",
+    "@sora-soft/type-guard": "^1.1.0",
     "etcd3": "^1.1.0"
   },
   "devDependencies": {
-    "@types/assert": "^1.5.4",
-    "@types/expect": "^24.3.0",
-    "@types/mocha": "^8.2.0",
     "@types/node": "^14.14.31",
     "@typescript-eslint/eslint-plugin": "^5.54.0",
     "@typescript-eslint/parser": "^5.54.0",
