@@ -6,6 +6,7 @@ import Event from 'events';
 import {EtcdEvent, IEtcdEvent} from './EtcdEvent.js';
 import {readFile} from 'fs/promises';
 import {AssertType, ValidateClass} from '@sora-soft/type-guard';
+import path from 'path';
 
 const pkg = JSON.parse(
   await readFile(new URL('../../package.json', import.meta.url), {encoding: 'utf-8'})
@@ -85,6 +86,10 @@ class EtcdComponent extends Component {
     });
   }
 
+  keys(...args: string[]) {
+    return path.join(this.etcdOptions_.prefix, ...args);
+  }
+
   get lease() {
     if (!this.lease_)
       throw new EtcdError(EtcdErrorCode.ERR_COMPONENT_NOT_CONNECTED, `ERR_COMPONENT_NOT_CONNECTED, name=${this.name_}`);
@@ -103,6 +108,10 @@ class EtcdComponent extends Component {
 
   get emitter() {
     return this.emitter_;
+  }
+
+  get prefix() {
+    return this.etcdOptions_.prefix;
   }
 
   private etcd_: Etcd3 | null;
