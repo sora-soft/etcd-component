@@ -22,6 +22,10 @@ export interface IEtcdComponentOptions extends IComponentOptions {
 
 @ValidateClass()
 class EtcdComponent extends Component {
+  constructor() {
+    super();
+    this.persistValues_ = new Map();
+  }
 
   protected setOptions(@AssertType() options: IEtcdComponentOptions) {
     this.etcdOptions_ = options;
@@ -43,15 +47,18 @@ class EtcdComponent extends Component {
   }
 
   async reconnect(err: Error) {
-    await Time.timeout(1000);
     Runtime.frameLogger.info(`component.${this.name}`, {event: 'start-grant-lease'});
     await this.grantLease().catch(async (e: ExError) => {
       Runtime.frameLogger.error(`component.${this.name}`, e, {event: 'reconnect-grant-lease-error'});
+      await Time.timeout(1000);
       await this.reconnect(err);
     });
 
     if (!this.lease_) {
       return;
+    }
+    for (const [key, value] of this.persistValues_) {
+      await this.lease_.put(key).value(value).exec();
     }
     this.emitter_.emit(EtcdEvent.LeaseReconnect, this.lease_, err);
   }
@@ -86,6 +93,16 @@ class EtcdComponent extends Component {
     });
   }
 
+  async persistPut(key: string, value: string) {
+    this.persistValues_.set(key, value);
+    return this.lease_?.put(key).value(value).exec();
+  }
+
+  async persistDel(key: string) {
+    this.persistValues_.delete(key);
+    return this.client.delete().key(key).exec();
+  }
+
   keys(...args: string[]) {
     return path.join(this.etcdOptions_.prefix, ...args);
   }
@@ -118,6 +135,7 @@ class EtcdComponent extends Component {
   private etcdOptions_: IEtcdComponentOptions;
   private lease_: Lease | null;
   private emitter_: IEventEmitter<IEtcdEvent>;
+  private persistValues_: Map<string, string>;
 }
 
 export {EtcdComponent};
